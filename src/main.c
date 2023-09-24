@@ -30,7 +30,6 @@ int main(int argc, char * argv[])
     if(fp == NULL) // double check that our file opened
     {
         printf("Unable to locate file %s\n", filepath);
-        return EXIT_FAILURE;
     }
 
     CharNode * features = (CharNode *) malloc(sizeof(CharNode));
@@ -44,7 +43,6 @@ int main(int argc, char * argv[])
     if(fp == NULL) // double check that our file opened
     {
         printf("Unable to locate file %s\n", test_filepath);
-        return EXIT_FAILURE;
     }
 
     CharNode * test_features = (CharNode *) malloc(sizeof(CharNode));
