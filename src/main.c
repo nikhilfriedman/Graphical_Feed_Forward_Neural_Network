@@ -23,6 +23,9 @@ int main(int argc, char * argv[])
 {
     srand(MAIN_SEED);
 
+    bool has_train_set = true;
+    bool has_test_set  = true;
+
     char filepath[FILE_BUFF] = DATA_DIR;
     strcat(filepath, DATA_FILE);          // finalize filepath
     FILE * fp = fopen(filepath, "r");     // open our file
@@ -30,11 +33,17 @@ int main(int argc, char * argv[])
     if(fp == NULL) // double check that our file opened
     {
         printf("Unable to locate file %s\n", filepath);
+        has_train_set = false;
     }
 
-    CharNode * features = (CharNode *) malloc(sizeof(CharNode));
-    double  ** train_set     = NULL;
-    Dimension train_dim       = get_frame(fp, &train_set, features);
+    CharNode * train_features = (CharNode *) malloc(sizeof(CharNode));
+    double  ** train_set      = NULL;
+    Dimension train_dim;
+
+    if(has_train_set)
+    {
+        train_dim = get_frame(fp, &train_set, train_features);
+    }
 
     char test_filepath[FILE_BUFF] = DATA_DIR;
     strcat(test_filepath, TEST_FILE);
@@ -43,11 +52,17 @@ int main(int argc, char * argv[])
     if(fp == NULL) // double check that our file opened
     {
         printf("Unable to locate file %s\n", test_filepath);
+        has_test_set = false;
     }
 
     CharNode * test_features = (CharNode *) malloc(sizeof(CharNode));
-    double  ** test_set      = NULL;
-    Dimension test_dim       = get_frame(fp, &test_set, test_features);
+    double  ** test_set     = NULL;
+    Dimension test_dim;
+
+    if(has_test_set)
+    {
+        test_dim = get_frame(fp, &test_set, test_features);
+    }
 
     fclose(fp);
 
@@ -152,20 +167,32 @@ int main(int argc, char * argv[])
                     if(in_button_bounds(train_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, train_button, "train", bebas_neue);
-                        for(int i = 1; i < 101; i++) 
+
+                        if(has_train_set)
                         {
-                            current_epoch++;
-                            printf("(%2d) ", current_epoch);
-                            epoch(network, train_set, train_dim.col, train_dim.row);
-                            if(i % 10 == 0) printf("Test loss: %lf\n\n", test_network(network, test_set, test_dim.col, test_dim.row));
+                            for(int i = 1; i < 101; i++) 
+                            {
+                                current_epoch++;
+                                printf("(%2d) ", current_epoch);
+                                epoch(network, train_set, train_dim.col, train_dim.row);
+                                if(i % 10 == 0) printf("Test loss: %lf\n\n", test_network(network, test_set, test_dim.col, test_dim.row));
+                            }
+                            update_network = true;
+                        } else {
+                            printf("Unable to find train set. Try unzipping data/mnist/MNIST_CSV.zip\n");
                         }
-                        update_network = true;
                     }
                     // test button
                     if(in_button_bounds(test_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, test_button, "test", bebas_neue);
-                        printf("Test loss: %lf\n", test_network(network, test_set, test_dim.col, test_dim.row));
+
+                        if(has_test_set)
+                        {
+                            printf("Test loss: %lf\n", test_network(network, test_set, test_dim.col, test_dim.row));
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // print button
                     if(in_button_bounds(print_button, mouse_x, mouse_y))
@@ -184,103 +211,161 @@ int main(int argc, char * argv[])
                     if(in_button_bounds(nine_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, nine_button, "9", bebas_neue);
-                        // get row with number
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 9.0) number_row++;
-                        // fill screen
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 9.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // eight button
                     if(in_button_bounds(eight_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, eight_button, "8", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 8.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 8.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // seven button
                     if(in_button_bounds(seven_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, seven_button, "7", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 7.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 7.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // six button
                     if(in_button_bounds(six_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, six_button, "6", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 6.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 6.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // five button
                     if(in_button_bounds(five_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, five_button, "5", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 5.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 5.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // four button
                     if(in_button_bounds(four_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, four_button, "4", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 4.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 4.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // three button
                     if(in_button_bounds(three_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, three_button, "3", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 3.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 3.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // two button
                     if(in_button_bounds(two_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, two_button, "2", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 2.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 2.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // one button
                     if(in_button_bounds(one_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, one_button, "1", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 1.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 1.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     // zero button
                     if(in_button_bounds(zero_button, mouse_x, mouse_y))
                     {
                         render_button_click(renderer, zero_button,  "0", bebas_neue);
-                        int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
-                        while(test_set[number_row][0] != 0.0) number_row++;
-                        for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
-                        update_draw_surface = true;
-                        update_network      = true;
+
+                        if(has_test_set)
+                        {
+                            int number_row = (rand() / (double) RAND_MAX) * (test_dim.row / 2.0);
+                            while(test_set[number_row][0] != 0.0) number_row++;
+                            for (int i = 0; i < DRAWING_SIZE; i++) for (int j = 0; j < DRAWING_SIZE; j++) drawing_surface_values[j][i] = test_set[number_row][(i * 28) + j + 1];
+                            update_draw_surface = true;
+                            update_network      = true;
+                        } else {
+                            printf("Unable to find test set. Try unzipping data/mnist/MNIST_CSV.zip\n");
+                        }
                     }
                     break;
                 case SDL_MOUSEBUTTONUP:
@@ -490,7 +575,8 @@ int main(int argc, char * argv[])
     // free data
     free_frame(train_set, train_dim);
     free_frame(test_set, test_dim);
-    free_charnode(features);
+    free_charnode(train_features);
+    free_charnode(test_features);
     free_network(network);
 
     return EXIT_SUCCESS;
