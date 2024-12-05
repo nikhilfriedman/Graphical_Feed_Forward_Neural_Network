@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+// needed to free char node
 void free_charnode(CharNode * n)
 {
     CharNode * temp; 
