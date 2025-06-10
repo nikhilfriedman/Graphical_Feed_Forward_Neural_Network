@@ -19,3 +19,22 @@ An SDL2-based interface is included to:
 2. Run the program:
    ```bash
    network.exe
+
+### Linux/macOS (or if you want to recompile)
+1. Make sure SDL2 and make is installed
+2. Clone the repository and build with make:
+   ```bash
+   git clone https://github.com/nikhilfriedman/Graphical_Feed_Forward_Neural_Network.git
+   cd Graphical_Feed_Forward_Neural_Network
+   make
+3. Run the compiled program:
+   ```bash
+   ./network
+
+## Requirements
+- SDL2 (for graphical interface)
+- C compiler (e.g., gcc or clang)
+- MNIST dataset (can be found zipped inside the data/mnist directory)
+
+## License
+This project is open-source and available under the MIT License.
