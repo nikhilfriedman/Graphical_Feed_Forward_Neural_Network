@@ -16,3 +16,6 @@ An SDL2-based interface is included to:
    ```bash
    git clone https://github.com/nikhilfriedman/Graphical_Feed_Forward_Neural_Network.git
    cd Graphical_Feed_Forward_Neural_Network
+2. Run the program:
+   ```bash
+   network.exe
